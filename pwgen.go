@@ -8,10 +8,10 @@ import (
 )
 
 const (
-	Lower   = "abcdefghijklmnopqrstuvwxyz"
-	Upper   = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	Digits  = "0123456789"
-	Symbols = "!@#$%^&*()-_=+[]{}<>?~"
+	Lower     = "abcdefghijklmnopqrstuvwxyz"
+	Upper     = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	Digits    = "0123456789"
+	Symbols   = "!@#$%^&*()-_=+[]{}<>?~"
 	Ambiguous = "il1Lo0O`'|"
 )
 
