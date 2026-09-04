@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"errors"
 	"math/big"
+	"strconv"
 	"strings"
 )
 
@@ -145,6 +146,40 @@ func randChar(pool string, used map[rune]bool, noRepeat bool) (rune, error) {
 		}
 	}
 	return 0, errors.New("pwgen: pool too small for no-repeat generation")
+}
+
+// Wordlist for passphrase mode — short, unambiguous, memorable words.
+var Wordlist = []string{
+	"apple", "arrow", "basil", "beach", "birch", "bison", "blade", "brave",
+	"brisk", "camel", "candle", "cedar", "chalk", "cherry", "cinder", "citrus",
+	"clover", "comet", "copper", "coral", "cosmos", "cotton", "crane", "crisp",
+	"crystal", "daisy", "dawn", "delta", "denim", "dune", "ember", "fable",
+	"fern", "fiber", "flint", "flora", "frost", "garnet", "ginger", "granite",
+	"harbor", "hazel", "henna", "ivory", "jasper", "jungle", "kelp", "kite",
+	"lagoon", "lantern", "lava", "lemon", "lilac", "linen", "lotus", "lunar",
+	"maple", "marble", "meadow", "mint", "morning", "moss", "nectar", "nimbus",
+	"oasis", "ocean", "onyx", "opal", "orchid", "otter", "palm", "pebble",
+	"pepper", "petal", "pilot", "pine", "plume", "prairie", "quartz", "quill",
+	"radish", "rapid", "raven", "reef", "ripple", "river", "rocket", "saffron",
+	"sage", "salmon", "sandal", "sapphire", "satin", "savanna", "shadow", "shore",
+	"signal", "silver", "solar", "spruce", "star", "storm", "summer", "sunset",
+	"tangerine", "teak", "thistle", "thunder", "tide", "timber", "topaz", "tulip",
+	"umber", "valley", "velvet", "vertex", "violet", "walnut", "willow", "zenith",
+}
+
+// GeneratePassphrase builds a passphrase of n words joined by a separator,
+// with a random digit appended to one word for strength.
+func GeneratePassphrase(randInt func(max int) int, words int, separator string) (string, error) {
+	if words < 3 || words > 12 {
+		return "", errors.New("pwgen: word count must be between 3 and 12")
+	}
+	parts := make([]string, words)
+	for i := 0; i < words; i++ {
+		parts[i] = Wordlist[randInt(len(Wordlist))]
+	}
+	digit := randInt(10)
+	parts[randInt(words)] += strconv.Itoa(digit)
+	return strings.Join(parts, separator), nil
 }
 
 func shuffle(runes []rune) {

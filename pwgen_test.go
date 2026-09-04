@@ -107,3 +107,57 @@ func TestUniqueness(t *testing.T) {
 		seen[p] = true
 	}
 }
+
+func TestGeneratePassphrase(t *testing.T) {
+	// deterministic fake rng
+	i := 0
+	randInt := func(max int) int {
+		i++
+		return (i * 7) % max
+	}
+	p, err := GeneratePassphrase(randInt, 4, "-")
+	if err != nil {
+		t.Fatal(err)
+	}
+	parts := strings.Split(p, "-")
+	if len(parts) != 4 {
+		t.Fatalf("want 4 words, got %d: %q", len(parts), p)
+	}
+	found := false
+	for _, w := range parts {
+		w = strings.TrimRight(w, "0123456789")
+		for _, valid := range Wordlist {
+			if w == valid {
+				found = true
+				break
+			}
+		}
+	}
+	if !found {
+		t.Fatalf("no wordlist words found in %q", p)
+	}
+}
+
+func TestGeneratePassphraseValidation(t *testing.T) {
+	randInt := func(max int) int { return 0 }
+	if _, err := GeneratePassphrase(randInt, 2, "-"); err == nil {
+		t.Fatal("too few words should error")
+	}
+	if _, err := GeneratePassphrase(randInt, 13, "-"); err == nil {
+		t.Fatal("too many words should error")
+	}
+}
+
+func TestGeneratePassphraseHasDigit(t *testing.T) {
+	randInt := func(max int) int { return 3 }
+	p, _ := GeneratePassphrase(randInt, 5, "-")
+	hasDigit := false
+	for _, r := range p {
+		if r >= '0' && r <= '9' {
+			hasDigit = true
+		}
+	}
+	if !hasDigit {
+		t.Fatalf("passphrase %q should contain a digit", p)
+	}
+}

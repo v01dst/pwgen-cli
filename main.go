@@ -1,9 +1,11 @@
 package main
 
 import (
+	"crypto/rand"
 	"flag"
 	"fmt"
 	"math"
+	"math/big"
 	"os"
 	"strings"
 )
@@ -20,6 +22,9 @@ func main() {
 		noAmbig  = flag.Bool("A", false, "exclude ambiguous chars (il1Lo0O etc)")
 		unique   = flag.Bool("u", false, "no repeated characters within a password")
 		strength = flag.Bool("strength", false, "print entropy estimate")
+		pass     = flag.Bool("passphrase", false, "generate word-based passphrases")
+		pwords   = flag.Int("words", 4, "words per passphrase (3-12)")
+		psep     = flag.String("sep", "-", "passphrase word separator")
 		ver      = flag.Bool("version", false, "print version")
 	)
 
@@ -37,6 +42,22 @@ func main() {
 
 	if *ver {
 		fmt.Println("pwgen-cli", version)
+		return
+	}
+
+	if *pass {
+		for i := 0; i < *count; i++ {
+			phrase, err := securePassphrase(*pwords, *psep)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, "error:", err)
+				os.Exit(1)
+			}
+			if *strength {
+				fmt.Printf("%s\t%s\n", phrase, passphraseEntropy(phrase))
+			} else {
+				fmt.Println(phrase)
+			}
+		}
 		return
 	}
 
@@ -91,4 +112,31 @@ func entropyLabel(p string) string {
 	default:
 		return fmt.Sprintf("%dbits-weak", bits)
 	}
+}
+
+func securePassphrase(numWords int, sep string) (string, error) {
+	randInt := func(max int) int {
+		n, err := cryptoRandInt(max)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "error:", err)
+			os.Exit(1)
+		}
+		return n
+	}
+	return GeneratePassphrase(randInt, numWords, sep)
+}
+
+func cryptoRandInt(max int) (int, error) {
+	nBig, err := rand.Int(rand.Reader, big.NewInt(int64(max)))
+	if err != nil {
+		return 0, err
+	}
+	return int(nBig.Int64()), nil
+}
+
+func passphraseEntropy(phrase string) string {
+	perWord := math.Log2(float64(len(Wordlist)))
+	words := strings.Split(phrase, "-")
+	bits := perWord*float64(len(words)) + 3.32
+	return fmt.Sprintf("%dbits-passphrase", int(bits))
 }
