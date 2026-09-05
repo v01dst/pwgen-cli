@@ -161,3 +161,35 @@ func TestGeneratePassphraseHasDigit(t *testing.T) {
 		t.Fatalf("passphrase %q should contain a digit", p)
 	}
 }
+
+func TestGeneratePattern(t *testing.T) {
+	i := 0
+	randInt := func(max int) int {
+		i++
+		return (i * 11) % max
+	}
+	p, err := GeneratePattern(randInt, "Aaaa-9999")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(p) != 9 {
+		t.Fatalf("len = %d, want 9: %q", len(p), p)
+	}
+	if p[4] != '-' {
+		t.Fatalf("literal dash missing: %q", p)
+	}
+	if !strings.ContainsAny(p[:4], "ABCDEFGHIJKLMNOPQRSTUVWXYZ") {
+		t.Fatalf("no upper: %q", p)
+	}
+}
+
+func TestGeneratePatternAllLiteral(t *testing.T) {
+	randInt := func(max int) int { return 0 }
+	p, err := GeneratePattern(randInt, "hello-world")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if p != "hello-world" {
+		t.Fatalf("literal passthrough failed: %q", p)
+	}
+}

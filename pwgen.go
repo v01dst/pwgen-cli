@@ -192,3 +192,26 @@ func shuffle(runes []rune) {
 		runes[i], runes[j] = runes[j], runes[i]
 	}
 }
+
+// Pattern chars: A=upper a=lower 9=digit #=symbol x=any-alnum, others literal.
+func GeneratePattern(randInt func(max int) int, pattern string) (string, error) {
+	var out strings.Builder
+	for _, c := range pattern {
+		switch c {
+		case 'A':
+			out.WriteByte(Upper[randInt(len(Upper))])
+		case 'a':
+			out.WriteByte(Lower[randInt(len(Lower))])
+		case '9':
+			out.WriteByte(Digits[randInt(len(Digits))])
+		case '#':
+			out.WriteByte(Symbols[randInt(len(Symbols))])
+		case 'x':
+			pool := Lower + Upper + Digits
+			out.WriteByte(pool[randInt(len(pool))])
+		default:
+			out.WriteRune(c)
+		}
+	}
+	return out.String(), nil
+}

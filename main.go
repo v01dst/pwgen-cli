@@ -25,6 +25,7 @@ func main() {
 		pass     = flag.Bool("passphrase", false, "generate word-based passphrases")
 		pwords   = flag.Int("words", 4, "words per passphrase (3-12)")
 		psep     = flag.String("sep", "-", "passphrase word separator")
+		pattern  = flag.String("pattern", "", "pattern mode: A=upper a=lower 9=digit #=symbol x=any, others literal")
 		ver      = flag.Bool("version", false, "print version")
 	)
 
@@ -42,6 +43,26 @@ func main() {
 
 	if *ver {
 		fmt.Println("pwgen-cli", version)
+		return
+	}
+
+	if *pattern != "" {
+		randInt := func(max int) int {
+			n, err := cryptoRandInt(max)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, "error:", err)
+				os.Exit(1)
+			}
+			return n
+		}
+		for i := 0; i < *count; i++ {
+			p, err := GeneratePattern(randInt, *pattern)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, "error:", err)
+				os.Exit(1)
+			}
+			fmt.Println(p)
+		}
 		return
 	}
 
